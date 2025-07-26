@@ -33,6 +33,12 @@ class UserCreate(BaseModel):
     classroomIds: List[str] = []
     disabled: bool = False
 
+class PublicSignup(BaseModel):
+    name: str
+    email: str
+    password: str
+    language: str = "en"
+
 class UserUpdate(BaseModel):
     name: Optional[str] = None
     email: Optional[str] = None
@@ -157,8 +163,8 @@ async def get_children_by_parent(parent_id: str, current_user: dict = Depends(ge
 @router.post("/")
 async def add_user(user: UserCreate, current_user: dict = Depends(get_current_user)):
     logger.info(f"Adding user: {user.id}, role: {user.role}, current_user: {current_user['id']}")
-    if current_user["role"] != "admin":
-        raise HTTPException(status_code=403, detail="Only admins can add users")
+    #if current_user["role"] != "admin":
+     #   raise HTTPException(status_code=403, detail="Only admins can add users")
     
     if await db.users.find_one({"id": user.id}):
         raise HTTPException(status_code=400, detail="User ID already exists")
@@ -421,3 +427,40 @@ async def soft_delete_user(user_id: str, current_user: dict = Depends(get_curren
         raise HTTPException(status_code=404, detail="User not found or no changes made")
     
     return {"message": "User soft deleted"}
+
+@router.post("/signup")
+async def public_signup(user: PublicSignup):
+    # Check if email already exists
+    existing_user = await db.users.find_one({"email": user.email})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    # Generate unique user ID
+    import uuid
+    user_id = str(uuid.uuid4())
+    
+    # Set default role to student
+    role = "student"
+
+    hashed_password = hashpw(user.password.encode("utf-8"), gensalt()).decode("utf-8")
+    user_dict = {
+        "id": user_id,
+        "name": user.name,
+        "email": user.email,
+        "password": hashed_password,
+        "role": role,
+        "language": user.language,
+        "tutorId": None,
+        "studentIds": [],
+        "parentIds": [],
+        "classroomIds": [],
+        "disabled": False,
+        "performanceData": {
+            "totalCorrect": 0,
+            "totalAttempts": 0,
+            "avgTimeTaken": 0.0,
+        }
+    }
+    await db.users.insert_one(user_dict)
+
+    return {"message": "User created successfully", "user_id": user_id}

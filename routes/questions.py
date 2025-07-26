@@ -102,7 +102,7 @@ async def add_question(question: Question):
 
     # log question.question content
     logger.info(f"Question content: {question.question}")   
-    logger.info(f"question_dict question: {question_dict["question"]}")   
+    logger.info(f"question_dict question: {question_dict['question']}")   
     
     # if question_dict["question"] is not None and first segment is a newline, remove it
     if question_dict["question"] and question_dict["question"][0].get("type") == "newline":

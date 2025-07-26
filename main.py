@@ -3,7 +3,7 @@ import sys
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes import verify_answer, question_generator, ai_mistral,ai_grok, questions, assignments, answers, auth, users, classrooms, performance, managers, knowledge_points, courses, tutors, students
+from routes import verify_answer, question_generator, ai_mistral,ai_grok, questions, assignments, answers, auth, users, classrooms, performance, managers, knowledge_points, courses, tutors, students, google_auth
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -23,7 +23,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -42,10 +42,10 @@ app.include_router(managers.router)
 app.include_router(knowledge_points.router)
 app.include_router(courses.router)
 app.include_router(tutors.router)
-app.include_router(users.router)
 app.include_router(students.router)
 app.include_router(verify_answer.router)
 app.include_router(question_generator.router)
+app.include_router(google_auth.router)
 
 
 
